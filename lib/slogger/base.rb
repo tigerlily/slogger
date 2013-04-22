@@ -1,3 +1,5 @@
+require 'thread'
+
 module Slogger
   class Base
     
@@ -114,6 +116,7 @@ module Slogger
       @facility = facility
       @facility_as_int = SYSLOG_FACILITIES[facility]
       @custom_severity_levels = custom_severity_levels
+      @mutex = Mutex.new
     end
 
     def level
@@ -135,7 +138,9 @@ module Slogger
         message = "[time: #{benchmark.real}] #{message}"
       end
       
-      Syslog.open(@app_name, Syslog::LOG_PID, @facility_as_int) { |s| s.send severity, '%s', message }
+      @mutex.synchronize do
+        Syslog.open(@app_name, Syslog::LOG_PID, @facility_as_int) { |s| s.send severity, '%s', message }
+      end
     end
 
     def raise_argument_error_to_required_parameter(param)
