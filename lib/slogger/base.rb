@@ -54,28 +54,36 @@ module Slogger
     # - local use 6  (local6)
     # - local use 7  (local7)
     #           
-    SYSLOG_FACILITIES = {
-      :kernel   => Syslog::LOG_KERN,
-      :user     => Syslog::LOG_USER,
-      :mail     => Syslog::LOG_MAIL,
-      :daemon   => Syslog::LOG_DAEMON,
-      :auth     => Syslog::LOG_AUTH,
-      :syslog   => Syslog::LOG_SYSLOG,
-      :lpr      => Syslog::LOG_LPR,
-      :news     => Syslog::LOG_NEWS,
-      :uucp     => Syslog::LOG_UUCP,
-      :cron     => Syslog::LOG_CRON,
-      :authpriv => Syslog::LOG_AUTHPRIV,
-      :ftp      => Syslog::LOG_FTP,
-      :local0   => Syslog::LOG_LOCAL0,
-      :local1   => Syslog::LOG_LOCAL1,
-      :local2   => Syslog::LOG_LOCAL2,
-      :local3   => Syslog::LOG_LOCAL3,
-      :local4   => Syslog::LOG_LOCAL4,
-      :local5   => Syslog::LOG_LOCAL5,
-      :local6   => Syslog::LOG_LOCAL6,
-      :local7   => Syslog::LOG_LOCAL7
+    FACILITIES_CONSTANTS_MAPPING = {
+      :kernel   => :LOG_KERN,
+      :user     => :LOG_USER,
+      :mail     => :LOG_MAIL,
+      :daemon   => :LOG_DAEMON,
+      :auth     => :LOG_AUTH,
+      :syslog   => :LOG_SYSLOG,
+      :lpr      => :LOG_LPR,
+      :news     => :LOG_NEWS,
+      :uucp     => :LOG_UUCP,
+      :cron     => :LOG_CRON,
+      :authpriv => :LOG_AUTHPRIV,
+      :ftp      => :LOG_FTP,
+      :local0   => :LOG_LOCAL0,
+      :local1   => :LOG_LOCAL1,
+      :local2   => :LOG_LOCAL2,
+      :local3   => :LOG_LOCAL3,
+      :local4   => :LOG_LOCAL4,
+      :local5   => :LOG_LOCAL5,
+      :local6   => :LOG_LOCAL6,
+      :local7   => :LOG_LOCAL7
     }
+
+    # Deletes undefined facilities, since their availability may vary from system to system
+    # The authpriv facility may not exist on Solaris for instance
+    SYSLOG_FACILITIES = Hash[
+      FACILITIES_CONSTANTS_MAPPING
+        .keep_if { |_, const_name| Syslog.const_defined?(const_name) }
+        .map { |facility_alias, const_name| [facility_alias, Syslog.const_get(const_name)] }
+    ]
 
     # Translation from Syslog severity levels to ruby's standard logger levels
     RUBY_STANDARD_LEVELS = Hash.new(5).merge({
